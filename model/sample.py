@@ -10,9 +10,9 @@ from tqdm import trange
 def top_k_logits(logits, k):
   if k == 0:
     return logits
-  values, _ = torch.topk(logits, k)
-  min_values = values[:, -1]
-  return torch.where(logits < min_values, torch.ones_like(logits, dtype=logits.dtype) * -1e10, logits)
+  values = torch.topk(logits, k)[0]
+  batch_mins = values[:, -1].view(-1, 1).expand_as(logits)
+  return torch.where(logits < batch_mins, torch.ones_like(logits) * -1e10, logits)
 
 def sample_sequence(model, length, start_token=None, batch_size=None, context=None, temperature=1, top_k=0, device='cuda', sample=True):
   if start_token is None:
